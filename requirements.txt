@@ -1,0 +1,6 @@
+openai
+chromadb
+pypdf
+langchain
+wikipedia
+tavily-python
