@@ -1,6 +1,10 @@
-openai
-chromadb
-pypdf
-langchain
-wikipedia
-tavily-python
+# Exact versions the test suite and container were verified against.
+# `langchain` is gone: the only use was the text splitter, which lives in
+# langchain-text-splitters now (and `langchain.text_splitter` no longer exists).
+openai==3.8.0
+chromadb==1.5.9
+pypdf==6.17.0
+langchain-text-splitters==1.1.2
+wikipedia==1.4.0
+tavily-python==0.8.1
+pydantic-settings==2.15.0

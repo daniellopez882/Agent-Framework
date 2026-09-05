@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-framework"
+version = "0.1.0"
+description = "Persona, memory, prompting strategies, RAG context and tools for an LLM agent."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.0,<4",
+    "chromadb>=1.0,<2",
+    "pypdf>=4,<7",
+    "langchain-text-splitters>=0.3,<2",
+    "wikipedia>=1.4,<2",
+    "tavily-python>=0.5,<1",
+    "pydantic-settings>=2.4,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+
+[tool.setuptools]
+packages = ["agent_framework"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", ".venv312"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+# 3.12: numpy's stubs (pulled in via chromadb) use the `type` statement.
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
