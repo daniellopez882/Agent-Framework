@@ -6,7 +6,14 @@ from agent_framework.config import DEFAULT_MODEL, Settings
 
 
 def test_defaults(monkeypatch):
-    for k in ("OPENAI_API_KEY", "OPENAI_MODEL", "TAVILY_API_KEY", "MAX_TOOL_ITERATIONS"):
+    for k in (
+        "OPENAI_API_KEY",
+        "OPENAI_MODEL",
+        "TAVILY_API_KEY",
+        "MAX_TOOL_ITERATIONS",
+        "AGENT_DB_PATH",
+        "CONTEXT_PERSIST_DIR",
+    ):
         monkeypatch.delenv(k, raising=False)
     s = Settings(_env_file=None)
     assert s.OPENAI_MODEL == DEFAULT_MODEL

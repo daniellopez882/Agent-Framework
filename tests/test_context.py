@@ -10,10 +10,12 @@ try:
 except ImportError as e:  # pragma: no cover - environment, not code
     pytest.skip(f"chromadb native bindings unavailable here: {e}", allow_module_level=True)
 
+from chromadb.api.types import Documents, EmbeddingFunction
+
 from agent_framework.context import ContextManager, DocumentMetadata
 
 
-class StubEmbedding:
+class StubEmbedding(EmbeddingFunction[Documents]):
     """Deterministic 8-dim embeddings; enough for Chroma to index and query."""
 
     def __call__(self, input):  # noqa: A002 - Chroma's parameter name
@@ -66,6 +68,18 @@ def test_index_and_query(ctx):
     assert ctx.response == out and ctx.current_query == "omega" and ctx.num_results == 2
     assert [d["source"] for d in ctx.list_indexed_documents()] == ["big.txt"]
     assert ctx.get_document_metadata("big.txt").source == "big.txt"
+
+
+def test_repeated_chunks_index_and_reindexing_is_idempotent(ctx):
+    # Five identical paragraphs -> identical chunks. The old id (hash of text + metadata)
+    # collided and ChromaDB raised DuplicateIDError.
+    text = ("same paragraph. " * 40 + "\n\n") * 5
+    n = ctx.index_text(text, DocumentMetadata(source="dup.txt"))
+    assert n >= 2
+    assert ctx.collection.count() == n
+    # Indexing the same document again replaces its chunks; it does not fail or duplicate.
+    assert ctx.index_text(text, DocumentMetadata(source="dup.txt")) == n
+    assert ctx.collection.count() == n
 
 
 def test_query_on_empty_collection_is_empty(ctx):

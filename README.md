@@ -23,7 +23,7 @@ ChromaDB), and **tools** the model can call in a real reason/act loop.
 | **Is** | One importable package, `agent_framework`, plus six runnable examples — one per capability level |
 | **Was** | Six directories, each a copy of the last with one more feature; `context.py` existed twice byte-for-byte, `strategy.py` three times; nothing was importable from a test |
 | **Model** | OpenAI chat completions; model, timeout and iteration budget are settings; the client is injectable |
-| **Tests** | 65, none of which call a model or the network — the model is a stub, Wikipedia and Tavily are stubs, ChromaDB runs in a temp dir with a stub embedding function |
+| **Tests** | 66, none of which call a model or the network — the model is a stub, Wikipedia and Tavily are stubs, ChromaDB runs in a temp dir with a stub embedding function |
 | **CI** | ruff · `ruff format --check` · mypy · pytest on 3.11/3.12 · import-has-no-side-effects check · bandit · pip-audit · gitleaks · container: non-root, reports config, refuses `--strict` without a key, runs the suite inside the image |
 
 ## Architecture
@@ -155,6 +155,7 @@ Runs as uid 10001; state goes to `/data`.
 | 11 | Errors returned as answer strings (`"An error occurred: …"`) | A caller could not tell a failure from a reply |
 | 12 | Wikipedia disambiguation treated as failure; `"..."` appended to every summary; `format_wiki_result` read keys never produced | Wrong or dead behaviour in the one tool that always worked |
 | 13 | No `.gitignore` | The first run would have committed `agent_memory.db` and `context_db/` |
+| 14 | Chunk ids were a hash of chunk text + metadata | A document with two identical chunks (repeated PDF headers/footers) failed with `DuplicateIDError`, swallowed into `False`; re-indexing a document raised the same. Ids are positional now and indexing upserts — found by running the suite inside the container |
 
 Also: `print` → `logging`; `langchain` (1.x, dozens of packages) replaced by `langchain-text-splitters`, the only part in use; ChromaDB metadata built from lists and `None`, which ChromaDB rejects, is now flattened.
 
@@ -178,7 +179,7 @@ agent_framework/
   wikipedia_tool.py  websearch_tool.py
   config.py          Settings;  errors.py  exceptions;  __main__.py  `check`
 examples/            01_persona … 06_tools
-tests/               65 tests
+tests/               66 tests
 docs/                ADRs, threat model
 ```
 

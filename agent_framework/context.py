@@ -9,7 +9,6 @@ download ChromaDB's default ONNX model; an empty query result is handled; and
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 from datetime import datetime
@@ -129,9 +128,15 @@ class ContextManager:
         return cls(collection_name=collection_name, persist_dir=persist_dir, **kwargs)
 
     @staticmethod
-    def _generate_document_id(content: str, metadata: dict[str, Any] | None = None) -> str:
-        id_content = content + (json.dumps(metadata, sort_keys=True) if metadata else "")
-        return hashlib.sha256(id_content.encode()).hexdigest()[:16]
+    def _generate_document_id(key: str, index: int, content: str) -> str:
+        """Stable per (document, position).
+
+        The old id hashed chunk text + metadata, so a document containing two
+        identical chunks (repeated headers and footers are common in PDFs)
+        failed with ``DuplicateIDError``. Including the position makes ids
+        unique within a document and stable across re-indexing.
+        """
+        return hashlib.sha256(f"{key}::{index}::{content}".encode()).hexdigest()[:16]
 
     @staticmethod
     def _extract_text_from_pdf(pdf_path: str) -> str:
@@ -151,13 +156,15 @@ class ContextManager:
         chunks = self._text_splitter.split_text(text)
         if not chunks:
             raise ValueError("No chunks generated from text")
+        doc_key = key or metadata.source
         meta = metadata.to_chroma_metadata()
-        self.collection.add(
+        # upsert: re-indexing the same document replaces its chunks instead of raising.
+        self.collection.upsert(
             documents=chunks,
-            ids=[self._generate_document_id(c, meta) for c in chunks],
+            ids=[self._generate_document_id(doc_key, i, c) for i, c in enumerate(chunks)],
             metadatas=[meta for _ in chunks],
         )
-        self._indexed_documents[key or metadata.source] = metadata
+        self._indexed_documents[doc_key] = metadata
         return len(chunks)
 
     def index_document(
