@@ -67,7 +67,9 @@ jobs:
       - name: Runs as non-root
         run: test "$(docker run --rm agent-framework:ci id -u)" = "10001"
       - name: Reports its configuration
-        run: docker run --rm agent-framework:ci | tee out.txt && grep -q '^model: ' out.txt
+        run: |
+          docker run --rm agent-framework:ci | tee out.txt
+          grep -q '^model: ' out.txt
       - name: Refuses to start strict without a key
         run: |
           if docker run --rm -e OPENAI_API_KEY= agent-framework:ci python -m agent_framework check --strict; then
