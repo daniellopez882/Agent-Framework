@@ -1,0 +1,14 @@
+# gitleaks configuration
+#
+# The default rules flag `.env.example` line 7 (`TAVILY_API_KEY=`) as a
+# generic API key. The file is the environment template: every value in it is
+# empty, and CI already asserts separately that no real `.env` is tracked.
+# Nothing else is allowlisted, so a secret committed anywhere else still fails
+# the security job.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "The environment template holds variable names with empty values"
+paths = ['''^\.env\.example$''']
