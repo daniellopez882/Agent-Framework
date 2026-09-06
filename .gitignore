@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.venv312/
+venv/
+.env
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# runtime state created in the working directory
+agent_memory.db
+context_db/
